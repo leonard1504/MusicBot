@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "@discordjs/opus": "^0.6.0",
+    "@discordjs/voice": "^0.6.0",
+    "@distube/spotify": "^0.6.4",
+    "discord.js": "13.2.0",
+    "distube": "3.0.0-beta.39",
+    "ffmpeg-static": "^4.4.0",
+    "fs": "^0.0.1-security",
+    "libsodium-wrappers": "^0.7.9"
+  }
+}
