@@ -29,7 +29,7 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('play')
         .addStringOption(option => option.setName('songname').setRequired(true).setDescription("Gebe hier entweder den Link zum Song / Playlist oder einfach den Liedtitel!"))
-		.setDescription('Spiele deine Lieblingsmusik! Gib einfach dein Link oder Liedtitel ein :smile:'),
+		.setDescription('Spiele deine Lieblingsmusik! Gib einfach dein Link oder Liedtitel ein'),
 	async execute(interaction) {
 			nick = interaction.member.nickname;
 			userpp = interaction.user.avatarURL();
