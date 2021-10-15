@@ -1,10 +1,11 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageActionRow, MessageButton, MessageEmbed } = require('discord.js');
+const { MessageEmbed } = require('discord.js');
+const { musicemoji, stopwatchemoji, color } = require("../config.json");
 let song, voice, nick, userpp;
-const wait = require('util').promisify(setTimeout);
 const Discord = require("discord.js");
-const { SearchResult, DisTubeError } = require('distube');
 const DisTube = require('distube');
+const { SpotifyPlugin } = require("@distube/spotify");
+const { validateAudioURL } = require('distube');
 const client = new Discord.Client({
 	intents: [
 		'GUILDS',
@@ -18,105 +19,65 @@ const distube = new DisTube.default(client, {
 	leaveOnEmpty: true,
 	emptyCooldown: 0,
 	leaveOnFinish: true,
-	leaveOnStop: true
+	leaveOnStop: true,
+	youtubeCookie: "",
+	plugins: [new SpotifyPlugin({api: {clientId: "c669d4c118d348c9aba24145893c74f9", clientSecret: "f5c9af6998454887906acd95c8ce7a84",},})],
 })
+
 module.exports = {
 	client, distube,
 	data: new SlashCommandBuilder()
 		.setName('play')
-        .addStringOption(option => option.setName('songname').setRequired(true).setDescription("Gebe hier den Link zu deinem Song an!"))
-		.setDescription('Spiele deine Lieblingsmusik!'),
+        .addStringOption(option => option.setName('songname').setRequired(true).setDescription("Gebe hier entweder den Link zum Song / Playlist oder einfach den Liedtitel!"))
+		.setDescription('Spiele deine Lieblingsmusik! Gib einfach dein Link oder Liedtitel ein :smile:'),
 	async execute(interaction) {
-		//console.log(interaction.channelId);
 			nick = interaction.member.nickname;
 			userpp = interaction.user.avatarURL();
 			song = interaction.options.get('songname').value;
-			voice = interaction.member.voice.channel;
-			messagesend = false;
 			try {
+				const embedwaiting = new MessageEmbed()
+					.setColor(`${color}`)
+					.setTitle(`Suche nach deinem Lied, dies kann einen Moment dauern... :smile:`)
+					.setFooter(`💥 Ausgeführt von:  ${nick}`, `${userpp}`);
+				await interaction.reply({ embeds: [embedwaiting] });
 				let validsong = await distube.search(song);
-				//console.log(validsong);
-				if (voice != null || await validsong != undefined || await validsong != null) {
-					/*const embedwaiting = new MessageEmbed()
-						.setColor('#0099ff')
-						.setTitle(`Suche nach deinem Lied, dies kann einen Moment dauern... :smile:`);
-					await interaction.reply({ embeds: [embedwaiting] });*/
-					interaction.deferReply();
-					distube.playVoiceChannel(voice, song);
-					const buttons = new MessageActionRow()
-					.addComponents(
-						new MessageButton()
-							.setCustomId('playpause')
-							.setLabel('⏯️')
-							.setStyle('SECONDARY'),
-						new MessageButton()
-							.setCustomId('skip')
-							.setLabel('⏭️')
-							.setStyle('SECONDARY'),
-						new MessageButton()
-							.setCustomId('stop')
-							.setLabel('⏹️')
-							.setStyle('SECONDARY'),
-					);
-					distube.on("playSong", (queue, song) => {
-						desc = `🎵 ${song.name}\n⏱️  ${song.formattedDuration}`;
-						if (song.playlist) { desc = `Playlist: ${song.playlist.name}\n${desc}`; }
-							thumbnail = `${song.thumbnail}`;
-							url = `${song.url}`;
-							//console.log(`${queue.songs.length}`);
-						if (queue.songs.length <= 1) {
-							const embed = new MessageEmbed()
-								.setColor('#0099ff')
-								.setTitle(`Ich spiele nun:`)
-								.setDescription(desc)
-								.setURL(url)
-								.setThumbnail(thumbnail)
-								.setFooter(`Angefragt von ${nick}`, `${userpp}`);
-							interaction.editReply({ embeds: [embed], components: [buttons] });
-						}
-					});
+				voice = await interaction.member.voice.channel;
+				if ( voice != null && validsong.length != 0) {
+					distube.playVoiceChannel(voice, song, { member: interaction.member, textChannel: interaction.channel });
+					
 					distube.once("addSong", ( queue, song ) => {
-						desc = `🎵 ${song.name}\n⏱️  ${song.formattedDuration}`
-						if (song.playlist) { desc = `Playlist: ${song.playlist.name}\n${desc}` }
+						desc = `${musicemoji} ${song.name}\n${stopwatchemoji} ${song.formattedDuration}`
+						if (song.playlist) { desc = `Playlist: ${song.playlist.name}\n\n${desc}` }
 						thumbnail = `${song.thumbnail}`
 						url = `${song.url}`;
-						//console.log(`${queue.songs.length}`);
-						/*if (queue.songs.length = 1) {
-							const embed = new MessageEmbed()
-								.setColor('#0099ff')
-								.setTitle(`Ich spiele nun:`)
-								.setDescription(desc)
-								.setURL(url)
-								.setThumbnail(thumbnail)
-								.setFooter(`Angefragt von ${nick}`, `${userpp}`);
-							interaction.editReply({ embeds: [embed], components: [buttons] });
-							messagesend = true;
-						} else*/ if (queue.songs.length > 1) {
+						if (queue.songs.length === 1 && queue.playing) {
+							interaction.deleteReply();
+						} else if (queue.songs.length > 1) {
 							const embedqueue = new MessageEmbed()
-								.setColor('#0099ff')
+								.setColor(`${color}`)
 								.setTitle(`Song wurde zur Warteschlange hinzugefügt:`)
 								.setDescription(desc)
 								.setURL(url)
 								.setThumbnail(thumbnail)
-								.setFooter(`Angefragt von ${nick}`, `${userpp}`);
-							interaction.editReply({ embeds: [embedqueue] });
+								.setFooter(`💥 Ausgeführt von:  ${nick}`, `${userpp}`);
+							interaction.editReply({  ephemeral: false, embeds: [embedqueue] });
 						}
-						//const collector = message.createMessageComponentCollector({ componentType: "BUTTON" });
-						//collector.on("collect", interaction => {
 					});
 				} else {
 					const embedfailedtoconnect = new MessageEmbed()
-						.setColor('#0099ff')
-						.setTitle(`Du befindest dich in keinem Channel :sad:`);
-					await interaction.reply({ ephemeral: true, embeds: [embedfailedtoconnect] });
+						.setColor(`${color}`)
+						.setTitle(`Du befindest dich in keinem Channel 😢`)
+						.setFooter(`💥 Ausgeführt von:  ${nick}`, `${userpp}`);
+					await interaction.editReply({ ephemeral: true, embeds: [embedfailedtoconnect] });
 				}
 			} catch(e) {
+				console.log(e);
 				const embedsearchfailed = new MessageEmbed()
-					.setColor('#0099ff')
+					.setColor(`${color}`)
 					.setTitle("Lied nicht gefunden")
-					.setDescription(`Ich konnte leider kein Lied mit dem Titel **${song}** finden`)
-					.setFooter(`Angefragt von ${nick}`, `${userpp}`);
-				await interaction.reply({ ephemeral: true, embeds: [embedsearchfailed] });
+					.setDescription(`Ich konnte leider kein Lied mit dem Titel / über den Link **${song}** finden :cry:`)
+					.setFooter(`💥 Ausgeführt von: ${nick}`, `${userpp}`);
+				await interaction.editReply({ ephemeral: true, embeds: [embedsearchfailed] });
 			}
-	}, nick, userpp, song, voice,
+	},
 };

@@ -1,5 +1,14 @@
 {
     "token": "ODk2MDA4MDEwMDA1MTA2NzMw.YWA2fA.4FeSNGbfeP2jPSsHWDikXENnBUg",
     "clientId": "896008010005106730",
-    "guildId": "292007278205206530"
+    "guildId": "292007278205206530",
+    "playemoji": "<:play:898576722088321034>",
+    "pauseemoji": "<:pause:898576722109276200>",
+    "playpauseemoji": "<:pauseplay:898576722004434994>",
+    "queuesongemoji": "<:queuesong:898576721996038214>",
+    "queueemoji": "<:queue:898576721907953665>",
+    "skipemoji": "<:skip:898576722075721788>",
+    "musicemoji": "<:music:898576722004410428>",
+    "stopwatchemoji": "<:stopwatch2:898575553689448468>",
+    "color": "#B385FD"
 }
