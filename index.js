@@ -15,7 +15,7 @@ for (const file of commandFiles) {
 client.once('ready', () => {
 	console.log('Bot Ready!');
 	console.log(`Logged in as ${client.user.tag}!`);
-	client.user.setPresence({status: "dnd", activities: [{name: "momentan nichts..."}]});
+	client.user.setPresence({status: "dnd", activities: [{name: "momentan nichts...",}]});
 });
 
 client.on('interactionCreate', async interaction => {
@@ -33,7 +33,11 @@ client.on('interactionCreate', async interaction => {
 
 client.on('interactionCreate', interaction => {
 	if (!interaction.isButton()) return;
-	nick2 = interaction.member.nickname;
+	if (interaction.member.nickname != null) {
+		nick2 = interaction.member.nickname;
+	} else {
+		nick2 = interaction.user.username;
+	}
 	userpp2 = interaction.user.avatarURL();
 	queue = distube.getQueue(interaction.guildId);
 	if(queue != undefined) {
@@ -142,7 +146,11 @@ client.on('interactionCreate', interaction => {
 
 client.on('interactionCreate', interaction => {
 	if (!interaction.isSelectMenu()) return;
-	nick2 = interaction.member.nickname;
+	if (interaction.member.nickname != null) {
+		nick2 = interaction.member.nickname;
+	} else {
+		nick2 = interaction.user.username;
+	}
 	userpp2 = interaction.user.avatarURL();
 	queue = distube.getQueue(interaction.guildId);
 	if(queue != undefined) {
@@ -203,6 +211,11 @@ distube.on("playSong", (queue, song) => {
 	if (song.playlist) { desc = `Playlist: ${song.playlist.name}\n\n${desc}`; }
 		thumbnail = `${song.thumbnail}`;
 		url = `${song.url}`;
+		if (song.member.nickname != null) {
+			nick = song.member.nickname;
+		} else {
+			nick = song.user.username;
+		}
 	if (queue.songs.length >= 1 && queue) {
 		client.user.setPresence({status: "online", activities: [{name: `${song.name}`, type: "PLAYING", url: `${song.url}`}]});
 		const embed = new MessageEmbed()
@@ -211,12 +224,20 @@ distube.on("playSong", (queue, song) => {
 			.setDescription(desc)
 			.setURL(url)
 			.setThumbnail(thumbnail)
-			.setFooter(`💥 Ausgeführt von: ${song.member.nickname}`, `${song.user.avatarURL()}`);
+			.setFooter(`💥 Ausgeführt von: ${nick}`, `${song.user.avatarURL()}`);
 		queue.textChannel.send({  ephemeral: false, embeds: [embed], components: [buttons] });
 	}
 });
 
 distube.on("finishSong", (queue, song) => {
+	client.user.setPresence({status: "dnd", activities: [{name: "momentan nichts..."}]});
+});
+
+distube.on("empty", (queue, song) => {
+	client.user.setPresence({status: "dnd", activities: [{name: "momentan nichts..."}]});
+});
+
+distube.on("disconnect", (queue, song) => {
 	client.user.setPresence({status: "dnd", activities: [{name: "momentan nichts..."}]});
 });
 

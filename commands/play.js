@@ -21,6 +21,7 @@ const distube = new DisTube.default(client, {
 	leaveOnFinish: true,
 	leaveOnStop: true,
 	youtubeCookie: "",
+	nsfw: true,
 	plugins: [new SpotifyPlugin({api: {clientId: "c669d4c118d348c9aba24145893c74f9", clientSecret: "f5c9af6998454887906acd95c8ce7a84",},})],
 })
 
@@ -31,13 +32,18 @@ module.exports = {
         .addStringOption(option => option.setName('songname').setRequired(true).setDescription("Gebe hier entweder den Link zum Song / Playlist oder einfach den Liedtitel!"))
 		.setDescription('Spiele deine Lieblingsmusik! Gib einfach dein Link oder Liedtitel ein'),
 	async execute(interaction) {
-			nick = interaction.member.nickname;
+			if (interaction.member.nickname != null) {
+				nick = interaction.member.nickname;
+			} else {
+				nick = interaction.user.username;
+			}
 			userpp = interaction.user.avatarURL();
 			song = interaction.options.get('songname').value;
 			try {
 				const embedwaiting = new MessageEmbed()
 					.setColor(`${color}`)
 					.setTitle(`Suche nach deinem Lied, dies kann einen Moment dauern... :smile:`)
+					.setDescription(`Manche Lieder können manchmal bedingt durch YouTube Richtlinen nicht auf Anhieb wiedergegeben werden, probier dies dann einfach nochmal :smile:`)
 					.setFooter(`💥 Ausgeführt von:  ${nick}`, `${userpp}`);
 				await interaction.reply({ embeds: [embedwaiting] });
 				let validsong = await distube.search(song);

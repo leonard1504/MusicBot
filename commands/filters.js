@@ -6,7 +6,11 @@ module.exports = {
 		.setName('filter')
 		.setDescription('Verbessere, oder auch verschlechtere, dein Musikerlebnis mit Filtern'),
 	async execute(interaction) {
-        nick = interaction.member.nickname;
+        if (interaction.member.nickname != null) {
+            nick = interaction.member.nickname;
+        } else {
+            nick = interaction.user.username;
+        }
         userpp = interaction.user.avatarURL();
         const filters = new MessageActionRow()
             .addComponents(
@@ -94,6 +98,7 @@ module.exports = {
         const embedfilters = new MessageEmbed()
             .setColor(`${color}`)
             .setTitle(`Wähle einen Filter aus`)
+            .setDescription(`Es können mehrere Filter auf einmal aktiviert sein. Bitte bedenke, dass besonders Filter wie z.B. Reverse eine Weile dauern können bis diese vollständig geladen wurden. Filter können auch ein Abbruch des Liedes hervorrufen, falls dies passiert probier es einfach nochmal.`)
             .setFooter(`💥 Ausgeführt von:  ${nick}`, `${userpp}`);
         await interaction.reply({ embeds: [embedfilters], components: [filters] });
     },
