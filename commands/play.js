@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageEmbed } = require('discord.js');
-const { musicemoji, stopwatchemoji, color } = require("../config.json");
+const { musicemoji, stopwatchemoji, color, listemoji } = require("../config.json");
 let song, voice, nick, userpp;
 const Discord = require("discord.js");
 const DisTube = require('distube');
@@ -44,16 +44,16 @@ module.exports = {
 					.setColor(`${color}`)
 					.setTitle(`Suche nach deinem Lied, dies kann einen Moment dauern... :smile:`)
 					.setDescription(`Manche Lieder können manchmal bedingt durch YouTube Richtlinen nicht auf Anhieb wiedergegeben werden, probier dies dann einfach nochmal :smile:`)
-					.setFooter(`💥 Ausgeführt von:  ${nick}`, `${userpp}`);
-				await interaction.reply({ embeds: [embedwaiting] });
+					.setFooter(`Ausgeführt von:  ${nick}`, `${userpp}`);
+				interaction.reply({ embeds: [embedwaiting] });
 				let validsong = await distube.search(song);
 				voice = await interaction.member.voice.channel;
 				if ( voice != null && validsong.length != 0) {
 					distube.playVoiceChannel(voice, song, { member: interaction.member, textChannel: interaction.channel });
 					
-					distube.once("addSong", ( queue, song ) => {
-						desc = `${musicemoji} ${song.name}\n${stopwatchemoji} ${song.formattedDuration}`
-						if (song.playlist) { desc = `Playlist: ${song.playlist.name}\n\n${desc}` }
+					distube.on("addSong", ( queue, song ) => {
+						desc = `${musicemoji} ${song.name}\n${stopwatchemoji} ${song.formattedDuration}\n\n${listemoji} Noch ${queue.songs.length} Lied(er) in der Warteschlange`;
+						if (song.playlist) { desc = `Playlist: ${song.playlist.name}\n\n${desc}`; }
 						thumbnail = `${song.thumbnail}`
 						url = `${song.url}`;
 						if (queue.songs.length === 1 && queue.playing) {
@@ -65,15 +65,20 @@ module.exports = {
 								.setDescription(desc)
 								.setURL(url)
 								.setThumbnail(thumbnail)
-								.setFooter(`💥 Ausgeführt von:  ${nick}`, `${userpp}`);
-							interaction.editReply({  ephemeral: false, embeds: [embedqueue] });
+								.setFooter(`Ausgeführt von:  ${nick}`, `${userpp}`);
+							interaction.editReply({ embeds: [embedqueue] });
 						}
 					});
+
+					distube.on("addList", ( queue, song ) => {
+						interaction.deleteReply();
+					});
+
 				} else {
 					const embedfailedtoconnect = new MessageEmbed()
 						.setColor(`${color}`)
 						.setTitle(`Du befindest dich in keinem Channel 😢`)
-						.setFooter(`💥 Ausgeführt von:  ${nick}`, `${userpp}`);
+						.setFooter(`Ausgeführt von:  ${nick}`, `${userpp}`);
 					await interaction.editReply({ ephemeral: true, embeds: [embedfailedtoconnect] });
 				}
 			} catch(e) {
@@ -82,7 +87,7 @@ module.exports = {
 					.setColor(`${color}`)
 					.setTitle("Lied nicht gefunden")
 					.setDescription(`Ich konnte leider kein Lied mit dem Titel / über den Link **${song}** finden :cry:`)
-					.setFooter(`💥 Ausgeführt von: ${nick}`, `${userpp}`);
+					.setFooter(`Ausgeführt von: ${nick}`, `${userpp}`);
 				await interaction.editReply({ ephemeral: true, embeds: [embedsearchfailed] });
 			}
 	},

@@ -2,8 +2,10 @@ const Discord = require("discord.js");
 const { MessageActionRow, MessageButton, MessageEmbed } = require('discord.js');
 const DisTube = require('distube');
 const fs = require("fs");
-const { token, playemoji, skipemoji, playpauseemoji, pauseemoji, queueemoji, queuesongemoji, musicemoji, stopwatchemoji, color } = require("./config.json");
+const { token, playemoji, skipemoji, playpauseemoji, pauseemoji, queueemoji, queuesongemoji, musicemoji, stopwatchemoji, color, listemoji } = require("./config.json");
 const { distube, client } = require('./commands/play');
+const { error } = require("console");
+const { EventEmitter } = require("stream");
 client.commands = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 
@@ -15,7 +17,8 @@ for (const file of commandFiles) {
 client.once('ready', () => {
 	console.log('Bot Ready!');
 	console.log(`Logged in as ${client.user.tag}!`);
-	client.user.setPresence({status: "dnd", activities: [{name: "momentan nichts...",}]});
+	client.user.setPresence({status: "dnd", activities: [{name: "momentan nichts..."}]});
+	distube.setMaxListeners(10);
 });
 
 client.on('interactionCreate', async interaction => {
@@ -51,13 +54,13 @@ client.on('interactionCreate', interaction => {
 						const embedstop = new MessageEmbed()
 							.setColor(`${color}`)
 							.setTitle(`Ich gehe ja schon :cry: 🚪`)
-							.setFooter(`💥 Ausgeführt von: ${nick2}`, `${userpp2}`);
+							.setFooter(`Ausgeführt von: ${nick2}`, `${userpp2}`);
 						interaction.reply({ embeds: [embedstop] });
 					} else {
 						const embedstopfailed = new MessageEmbed()
 							.setColor(`${color}`)
 							.setTitle(`Ich spiele doch schon nicht mehr :cry:`)
-							.setFooter(`💥 Ausgeführt von: ${nick2}`, `${userpp2}`);
+							.setFooter(`Ausgeführt von: ${nick2}`, `${userpp2}`);
 						interaction.reply({ ephemeral: true, embeds: [embedstopfailed] });
 					}
 				break;
@@ -68,13 +71,13 @@ client.on('interactionCreate', interaction => {
 						const embedskipped = new MessageEmbed()
 							.setColor(`${color}`)
 							.setTitle(`Song wurde geskipped ${skipemoji}`)
-							.setFooter(`💥 Ausgeführt von: ${nick2}`, `${userpp2}`);
+							.setFooter(`Ausgeführt von: ${nick2}`, `${userpp2}`);
 						interaction.reply({ embeds: [embedskipped] });
 					} else {
 						const embedskippedfailed = new MessageEmbed()
 							.setColor(`${color}`)
 							.setTitle(`Song konnte nicht geskipped werden, da kein weiterer Song in der Warteschlange ist ${skipemoji}`)
-							.setFooter(`💥 Ausgeführt von: ${nick2}`, `${userpp2}`);
+							.setFooter(`Ausgeführt von: ${nick2}`, `${userpp2}`);
 						interaction.reply({ ephemeral: true, embeds: [embedskippedfailed] });
 					}
 					let skipped = true;
@@ -86,14 +89,14 @@ client.on('interactionCreate', interaction => {
 						const embedpause = new MessageEmbed()
 						.setColor(`${color}`)
 						.setTitle(`Song wird angehalten ${pauseemoji}`)
-						.setFooter(`💥 Ausgeführt von: ${nick2}`, `${userpp2}`);
+						.setFooter(`Ausgeführt von: ${nick2}`, `${userpp2}`);
 						interaction.reply({ embeds: [embedpause] });
 					} else {
 						distube.resume(interaction.guildId);
 						const embedplay = new MessageEmbed()
 						.setColor(`${color}`)
 						.setTitle(`Song wird abgespielt ${playemoji}`)
-						.setFooter(`💥 Ausgeführt von: ${nick2}`, `${userpp2}`);
+						.setFooter(`Ausgeführt von: ${nick2}`, `${userpp2}`);
 						interaction.reply({ embeds: [embedplay] });
 					} 
 				break;
@@ -104,14 +107,14 @@ client.on('interactionCreate', interaction => {
 						const embedrepeatsong = new MessageEmbed()
 							.setColor(`${color}`)
 							.setTitle(`Song wird wiederholt ${queuesongemoji}`)
-							.setFooter(`💥 Ausgeführt von: ${nick2}`, `${userpp2}`);
+							.setFooter(`Ausgeführt von: ${nick2}`, `${userpp2}`);
 						interaction.reply({ embeds: [embedrepeatsong] });
 					} else if (queue.repeatMode === 1) {
 						distube.setRepeatMode(interaction.guild, 0);
 						const embedrepeatsongstop = new MessageEmbed()
 							.setColor(`${color}`)
 							.setTitle(`Song wird nicht mehr wiederholt ${queuesongemoji}`)
-							.setFooter(`💥 Ausgeführt von: ${nick2}`, `${userpp2}`);
+							.setFooter(`Ausgeführt von: ${nick2}`, `${userpp2}`);
 						interaction.reply({ embeds: [embedrepeatsongstop] });
 					} 
 				break;
@@ -122,14 +125,14 @@ client.on('interactionCreate', interaction => {
 						const embedrepeatsong = new MessageEmbed()
 							.setColor(`${color}`)
 							.setTitle(`Warteschlange wird wiederholt ${queueemoji}`)
-							.setFooter(`💥 Ausgeführt von: ${nick2}`, `${userpp2}`);
+							.setFooter(`Ausgeführt von: ${nick2}`, `${userpp2}`);
 						interaction.reply({ embeds: [embedrepeatsong] });
 					} else if (queue.repeatMode === 2) {
 						distube.setRepeatMode(interaction.guild, 0);
 						const embedrepeatsongstop = new MessageEmbed()
 							.setColor(`${color}`)
 							.setTitle(`Warteschlange wird nicht mehr wiederholt ${queueemoji}`)
-							.setFooter(`💥 Ausgeführt von: ${nick2}`, `${userpp2}`);
+							.setFooter(`Ausgeführt von: ${nick2}`, `${userpp2}`);
 						interaction.reply({ embeds: [embedrepeatsongstop] });
 					} 
 				break;
@@ -139,7 +142,7 @@ client.on('interactionCreate', interaction => {
 		const embednoqueue = new MessageEmbed()
 			.setColor(`${color}`)
 			.setTitle(`Du kannst dies nicht tun, da kein Lied läuft :thinking:`)
-			.setFooter(`💥 Ausgeführt von: ${nick2}`, `${userpp2}`);
+			.setFooter(`Ausgeführt von: ${nick2}`, `${userpp2}`);
 		interaction.reply({ ephemeral: true, embeds: [embednoqueue] });
 	}
 });
@@ -162,14 +165,14 @@ client.on('interactionCreate', interaction => {
 				const embedfilterapply = new MessageEmbed()
 					.setColor(`${color}`)
 					.setTitle(`Okay ich habe ${setfilter} als Effekt angewendet`)
-					.setFooter(`💥 Ausgeführt von: ${nick2}`, `${userpp2}`);
+					.setFooter(`Ausgeführt von: ${nick2}`, `${userpp2}`);
 				interaction.reply({ embeds: [embedfilterapply] });
 			} else {
 				distube.setFilter(queue, false);
 				const embedfilterstop = new MessageEmbed()
 					.setColor(`${color}`)
 					.setTitle(`Okay ich habe alle Filter deaktiviert`)
-					.setFooter(`💥 Ausgeführt von: ${nick2}`, `${userpp2}`);
+					.setFooter(`Ausgeführt von: ${nick2}`, `${userpp2}`);
 				interaction.reply({ embeds: [embedfilterstop] });
 			}
 		}
@@ -177,7 +180,7 @@ client.on('interactionCreate', interaction => {
 		const embednoqueue = new MessageEmbed()
 			.setColor(`${color}`)
 			.setTitle(`Du kannst dies nicht tun, da kein Lied läuft :thinking:`)
-			.setFooter(`💥 Ausgeführt von: ${nick2}`, `${userpp2}`);
+			.setFooter(`Ausgeführt von: ${nick2}`, `${userpp2}`);
 		interaction.reply({ ephemeral: true, embeds: [embednoqueue] });
 	}
 });
@@ -206,8 +209,27 @@ const buttons = new MessageActionRow()
 		.setStyle('DANGER'),
 );
 
+distube.on("addList", ( queue, song ) => {
+	desc = `${musicemoji} ${song.name}\n${stopwatchemoji} ${song.formattedDuration}\n\n${listemoji} Noch ${queue.songs.length} Lied(er) in der Warteschlange`;
+	thumbnail = `${song.thumbnail}`
+	url = `${song.url}`;
+	if (song.member.nickname != null) {
+		nick = song.member.nickname;
+	} else {
+		nick = song.user.username;
+	}
+	const embedqueueadd = new MessageEmbed()
+		.setColor(`${color}`)
+		.setTitle(`Playlist wurde zur Warteschlange hinzugefügt:`)
+		.setDescription(desc)
+		.setURL(url)
+		.setThumbnail(thumbnail)
+		.setFooter(`Ausgeführt von:  ${nick}`, `${song.user.avatarURL()}`);
+	queue.textChannel.send({ embeds: [embedqueueadd] });
+});
+
 distube.on("playSong", (queue, song) => {
-	desc = `${musicemoji} ${song.name}\n${stopwatchemoji} ${song.formattedDuration}`;
+	desc = `${musicemoji} ${song.name}\n${stopwatchemoji} ${song.formattedDuration}\n\n${listemoji} Noch ${queue.songs.length} Lied(er) in der Warteschlange`;
 	if (song.playlist) { desc = `Playlist: ${song.playlist.name}\n\n${desc}`; }
 		thumbnail = `${song.thumbnail}`;
 		url = `${song.url}`;
@@ -224,7 +246,7 @@ distube.on("playSong", (queue, song) => {
 			.setDescription(desc)
 			.setURL(url)
 			.setThumbnail(thumbnail)
-			.setFooter(`💥 Ausgeführt von: ${nick}`, `${song.user.avatarURL()}`);
+			.setFooter(`Ausgeführt von: ${nick}`, `${song.user.avatarURL()}`);
 		queue.textChannel.send({  ephemeral: false, embeds: [embed], components: [buttons] });
 	}
 });
@@ -239,6 +261,14 @@ distube.on("empty", (queue, song) => {
 
 distube.on("disconnect", (queue, song) => {
 	client.user.setPresence({status: "dnd", activities: [{name: "momentan nichts..."}]});
+});
+
+distube.on("error", (textChannel, error) => {
+	console.log(error);
+});
+
+process.on('unhandledRejection', error => {
+	console.error('Unhandled promise rejection: (but tbh who tf cares because it works as intended)', error);
 });
 
 client.login(token);
