@@ -99,7 +99,7 @@ module.exports = {
             .setColor(`${color}`)
             .setTitle(`Wähle einen Filter aus`)
             .setDescription(`Es können mehrere Filter auf einmal aktiviert sein. Bitte bedenke, dass besonders Filter wie z.B. Reverse eine Weile dauern können bis diese vollständig geladen wurden. Filter können auch ein Abbruch des Liedes hervorrufen, falls dies passiert probier es einfach nochmal.`)
-            .setFooter(`💥 Ausgeführt von:  ${nick}`, `${userpp}`);
+            .setFooter(`Ausgeführt von:  ${nick}`, `${userpp}`);
         await interaction.reply({ embeds: [embedfilters], components: [filters] });
     },
 };

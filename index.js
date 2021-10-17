@@ -2,7 +2,7 @@ const Discord = require("discord.js");
 const { MessageActionRow, MessageButton, MessageEmbed } = require('discord.js');
 const DisTube = require('distube');
 const fs = require("fs");
-const { token, playemoji, skipemoji, playpauseemoji, pauseemoji, queueemoji, queuesongemoji, musicemoji, stopwatchemoji, color, listemoji } = require("./config.json");
+const { token, playemoji, skipemoji, playpauseemoji, pauseemoji, queueemoji, queuesongemoji, musicemoji, stopwatchemoji, color, listemoji, leaveemoji } = require("./config.json");
 const { distube, client } = require('./commands/play');
 const { error } = require("console");
 const { EventEmitter } = require("stream");
@@ -147,6 +147,10 @@ client.on('interactionCreate', interaction => {
 	}
 });
 
+function capitalizeFirstLetter(string) {
+	return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
 client.on('interactionCreate', interaction => {
 	if (!interaction.isSelectMenu()) return;
 	if (interaction.member.nickname != null) {
@@ -162,9 +166,10 @@ client.on('interactionCreate', interaction => {
 			console.log(setfilter);
 			if(queue.playing && setfilter != "false") {
 				distube.setFilter(queue, `${setfilter}`);
+				const filtertext = capitalizeFirstLetter(setfilter.toString());
 				const embedfilterapply = new MessageEmbed()
 					.setColor(`${color}`)
-					.setTitle(`Okay ich habe ${setfilter} als Effekt angewendet`)
+					.setTitle(`Okay ich habe ${filtertext} als Effekt angewendet`)
 					.setFooter(`Ausgeführt von: ${nick2}`, `${userpp2}`);
 				interaction.reply({ embeds: [embedfilterapply] });
 			} else {
@@ -205,7 +210,7 @@ const buttons = new MessageActionRow()
 		.setStyle('SECONDARY'),
 	new MessageButton()
 		.setCustomId('stop')
-		.setLabel('🚪')
+		.setLabel(`${leaveemoji}`)
 		.setStyle('DANGER'),
 );
 
