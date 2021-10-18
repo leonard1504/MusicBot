@@ -89,8 +89,8 @@ module.exports = {
                             value: 'tremolo',
                         },
                         {
-                            label: 'Ohrwax',
-                            description: 'Fügt einen Ohrwax Effekt hinzu',
+                            label: 'Earwax',
+                            description: 'Fügt einen Earwax Effekt hinzu',
                             value: 'earwax',
                         },
                     ]),

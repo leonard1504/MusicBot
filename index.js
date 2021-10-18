@@ -1,11 +1,8 @@
 const Discord = require("discord.js");
 const { MessageActionRow, MessageButton, MessageEmbed } = require('discord.js');
-const DisTube = require('distube');
 const fs = require("fs");
 const { token, playemoji, skipemoji, playpauseemoji, pauseemoji, queueemoji, queuesongemoji, musicemoji, stopwatchemoji, color, listemoji, leaveemoji } = require("./config.json");
 const { distube, client } = require('./commands/play');
-const { error } = require("console");
-const { EventEmitter } = require("stream");
 client.commands = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 
@@ -53,7 +50,7 @@ client.on('interactionCreate', interaction => {
 						distube.stop(interaction.guildId);
 						const embedstop = new MessageEmbed()
 							.setColor(`${color}`)
-							.setTitle(`Ich gehe ja schon :cry: 🚪`)
+							.setTitle(`Ich gehe ja schon :cry: ${leaveemoji}`)
 							.setFooter(`Ausgeführt von: ${nick2}`, `${userpp2}`);
 						interaction.reply({ embeds: [embedstop] });
 					} else {
@@ -210,9 +207,31 @@ const buttons = new MessageActionRow()
 		.setStyle('SECONDARY'),
 	new MessageButton()
 		.setCustomId('stop')
-		.setLabel(`${leaveemoji}`)
-		.setStyle('DANGER'),
+		.setEmoji(`${leaveemoji}`)
+		.setStyle('SECONDARY'),
 );
+
+distube.on("addSong", ( queue, song ) => {
+	desc = `${musicemoji} ${song.name}\n${stopwatchemoji} ${song.formattedDuration}\n\n${listemoji} Noch ${queue.songs.length} Lied(er) in der Warteschlange`;
+	if (song.playlist) { desc = `Playlist: ${song.playlist.name}\n\n${desc}`; }
+	thumbnail = `${song.thumbnail}`
+	url = `${song.url}`;
+	if (song.member.nickname != null) {
+		nick = song.member.nickname;
+	} else {
+		nick = song.user.username;
+	}
+	if (queue.songs.length > 1) {
+		const embedqueue = new MessageEmbed()
+			.setColor(`${color}`)
+			.setTitle(`Song wurde zur Warteschlange hinzugefügt:`)
+			.setDescription(desc)
+			.setURL(url)
+			.setThumbnail(thumbnail)
+			.setFooter(`Ausgeführt von:  ${nick}`, `${song.user.avatarURL()}`);
+		queue.textChannel.send({ embeds: [embedqueue] });
+	}
+});
 
 distube.on("addList", ( queue, song ) => {
 	desc = `${musicemoji} ${song.name}\n${stopwatchemoji} ${song.formattedDuration}\n\n${listemoji} Noch ${queue.songs.length} Lied(er) in der Warteschlange`;
