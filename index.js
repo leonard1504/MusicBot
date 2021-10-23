@@ -1,5 +1,6 @@
 const Discord = require("discord.js");
-const { MessageActionRow, MessageButton, MessageEmbed } = require('discord.js');
+const { MessageActionRow, MessageButton, MessageEmbed, MessageAttachment } = require('discord.js');
+const Canvas = require('canvas');
 const fs = require("fs");
 const { token, playemoji, skipemoji, playpauseemoji, pauseemoji, queueemoji, queuesongemoji, musicemoji, stopwatchemoji, color, listemoji, leaveemoji } = require("./config.json");
 const { distube, client } = require('./commands/play');
@@ -16,6 +17,47 @@ client.once('ready', () => {
 	console.log(`Logged in as ${client.user.tag}!`);
 	client.user.setPresence({status: "dnd", activities: [{name: "momentan nichts..."}]});
 	distube.setMaxListeners(10);
+});
+
+
+client.on('guildMemberAdd', async member => {
+	console.log("Neues Mitglied: " + member.user.tag);
+	const channel = member.guild.channels.cache.find(channel => channel.name === "🏠eingangshalle");
+	let name = member.user.tag;
+	const canvas = Canvas.createCanvas(2430, 1056);
+	const context = canvas.getContext('2d');
+	const welcomefg = await Canvas.loadImage('./serverjoin.png');
+	const avatar = await Canvas.loadImage(member.user.displayAvatarURL({ format: "jpg"}));
+	context.drawImage(avatar, 1346, 182, 600, 600);
+	context.drawImage(welcomefg, 0, 0, canvas.width, canvas.height);
+	const attachment = new MessageAttachment(canvas.toBuffer(), 'profile-image.png');
+	
+	const embedwelcome = new MessageEmbed()
+		.setColor(`${color}`)
+		.setTitle(`Heißt ${name} auf \n${member.guild.name} willkommen!`)
+		.setImage('attachment://profile-image.png')
+		.setFooter(`${member.guild.name} hat nun ${member.guild.memberCount} Mitglieder`, `${member.guild.iconURL()}`);
+	channel.send({ embeds: [embedwelcome], files: [attachment] });
+});
+
+client.on('guildMemberRemove', async member => {
+	console.log("Mitglied hat verlassen: " + member.user.tag);
+	const channel = member.guild.channels.cache.find(channel => channel.name === "🏠eingangshalle");
+	let name = member.user.tag;
+	const canvas = Canvas.createCanvas(2430, 1056);
+	const context = canvas.getContext('2d');
+	const welcomefg = await Canvas.loadImage('./serverleave.png');
+	const avatar = await Canvas.loadImage(member.user.displayAvatarURL({ format: "jpg"}));
+	context.drawImage(avatar, 1346, 182, 600, 600);
+	context.drawImage(welcomefg, 0, 0, canvas.width, canvas.height);
+	const attachment = new MessageAttachment(canvas.toBuffer(), 'profile-image.png');
+	
+	const embedleave = new MessageEmbed()
+		.setColor(`${color}`)
+		.setTitle(`${name} sagt Tschüss zu \n${member.guild.name}`)
+		.setImage('attachment://profile-image.png')
+		.setFooter(`${member.guild.name} hat nun ${member.guild.memberCount} Mitglieder`, `${member.guild.iconURL()}`);
+	channel.send({ embeds: [embedleave], files: [attachment] });
 });
 
 client.on('interactionCreate', async interaction => {
@@ -77,7 +119,6 @@ client.on('interactionCreate', interaction => {
 							.setFooter(`Ausgeführt von: ${nick2}`, `${userpp2}`);
 						interaction.reply({ ephemeral: true, embeds: [embedskippedfailed] });
 					}
-					let skipped = true;
 				break;
 				case "playpause":
 					console.log(interaction.customId);
@@ -212,7 +253,12 @@ const buttons = new MessageActionRow()
 );
 
 distube.on("addSong", ( queue, song ) => {
-	desc = `${musicemoji} ${song.name}\n${stopwatchemoji} ${song.formattedDuration}\n\n${listemoji} Noch ${queue.songs.length} Lied(er) in der Warteschlange`;
+	if(queue.songs.length === 1) {
+		queuetext = `${listemoji} Noch ${queue.songs.length} Lied in der Warteschlange`
+	} else if(queue.songs.length > 1) {
+		queuetext = `${listemoji} Noch ${queue.songs.length} Lieder in der Warteschlange`
+	}
+	desc = `${musicemoji} ${song.name}\n${stopwatchemoji} ${song.formattedDuration}\n\n${queuetext}`;
 	if (song.playlist) { desc = `Playlist: ${song.playlist.name}\n\n${desc}`; }
 	thumbnail = `${song.thumbnail}`
 	url = `${song.url}`;
@@ -234,7 +280,12 @@ distube.on("addSong", ( queue, song ) => {
 });
 
 distube.on("addList", ( queue, song ) => {
-	desc = `${musicemoji} ${song.name}\n${stopwatchemoji} ${song.formattedDuration}\n\n${listemoji} Noch ${queue.songs.length} Lied(er) in der Warteschlange`;
+	if(queue.songs.length === 1) {
+		queuetext = `${listemoji} Noch ${queue.songs.length} Lied in der Warteschlange`
+	} else if(queue.songs.length > 1) {
+		queuetext = `${listemoji} Noch ${queue.songs.length} Lieder in der Warteschlange`
+	}
+	desc = `${musicemoji} ${song.name}\n${stopwatchemoji} ${song.formattedDuration}\n\n${queuetext}`;
 	thumbnail = `${song.thumbnail}`
 	url = `${song.url}`;
 	if (song.member.nickname != null) {
@@ -253,7 +304,12 @@ distube.on("addList", ( queue, song ) => {
 });
 
 distube.on("playSong", (queue, song) => {
-	desc = `${musicemoji} ${song.name}\n${stopwatchemoji} ${song.formattedDuration}\n\n${listemoji} Noch ${queue.songs.length} Lied(er) in der Warteschlange`;
+	if(queue.songs.length === 1) {
+		queuetext = `${listemoji} Noch ${queue.songs.length} Lied in der Warteschlange`
+	} else if(queue.songs.length > 1) {
+		queuetext = `${listemoji} Noch ${queue.songs.length} Lieder in der Warteschlange`
+	}
+	desc = `${musicemoji} ${song.name}\n${stopwatchemoji} ${song.formattedDuration}\n\n${queuetext}`;
 	if (song.playlist) { desc = `Playlist: ${song.playlist.name}\n\n${desc}`; }
 		thumbnail = `${song.thumbnail}`;
 		url = `${song.url}`;

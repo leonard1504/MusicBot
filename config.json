@@ -1,5 +1,6 @@
 {
     "token": "ODk2MDA4MDEwMDA1MTA2NzMw.YWA2fA.4FeSNGbfeP2jPSsHWDikXENnBUg",
+    "geniusapikey": "3HY6OIJZJ7TRbW1DHflvGZQrg9BgrCxRLmv2hzHcXRIuAMxLh_TkKRYCPs935aJO",
     "clientId": "896008010005106730",
     "guildId": "292007278205206530",
     "playemoji": "<:play:898576722088321034>",
@@ -11,6 +12,7 @@
     "musicemoji": "<:music:898576722004410428>",
     "stopwatchemoji": "<:stopwatch2:898575553689448468>",
     "listemoji": "<:list:899387265678209054>",
-    "leaveemoji": "<:leave:899393121417314385>",
+    "leaveemoji": "<:leave:901255110821314610>",
+    "loadingemoji": "<a:loading:900669360715227137>",
     "color": "#B385FD"
 }

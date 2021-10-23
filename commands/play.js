@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageEmbed } = require('discord.js');
-const { color } = require("../config.json");
+const { color, loadingemoji } = require("../config.json");
 let song, voice, nick, userpp;
 const Discord = require("discord.js");
 const DisTube = require('distube');
@@ -10,6 +10,11 @@ const client = new Discord.Client({
 		'GUILDS',
 		'GUILD_VOICE_STATES',
 		'GUILD_MESSAGES',
+		'GUILD_MEMBERS',
+		'GUILD_BANS',
+		'GUILD_INVITES',
+		'GUILD_WEBHOOKS',
+		'GUILD_PRESENCES',
 	],
 });
 const distube = new DisTube.default(client, {
@@ -41,7 +46,7 @@ module.exports = {
 			try {
 				const embedwaiting = new MessageEmbed()
 					.setColor(`${color}`)
-					.setTitle(`Suche nach deinem Lied, dies kann einen Moment dauern... :smile:`)
+					.setTitle(`${loadingemoji} Suche nach deinem Lied, dies kann einen Moment dauern... :smile:`)
 					.setDescription(`Manche Lieder können manchmal bedingt durch YouTube Richtlinen nicht auf Anhieb wiedergegeben werden, probier dies dann einfach nochmal :smile:`)
 					.setFooter(`Ausgeführt von:  ${nick}`, `${userpp}`);
 				interaction.reply({ embeds: [embedwaiting] });
@@ -59,20 +64,22 @@ module.exports = {
 					});
 
 				} else {
+					interaction.deleteReply();
 					const embedfailedtoconnect = new MessageEmbed()
 						.setColor(`${color}`)
 						.setTitle(`Du befindest dich in keinem Channel 😢`)
 						.setFooter(`Ausgeführt von:  ${nick}`, `${userpp}`);
-					await interaction.editReply({ ephemeral: true, embeds: [embedfailedtoconnect] });
+					await interaction.channel.send({ ephemeral: true, embeds: [embedfailedtoconnect] });
 				}
 			} catch(e) {
 				console.log(e);
+				interaction.deleteReply();
 				const embedsearchfailed = new MessageEmbed()
 					.setColor(`${color}`)
 					.setTitle("Lied nicht gefunden")
 					.setDescription(`Ich konnte leider kein Lied mit dem Titel / über den Link **${song}** finden :cry:`)
 					.setFooter(`Ausgeführt von: ${nick}`, `${userpp}`);
-				await interaction.editReply({ ephemeral: true, embeds: [embedsearchfailed] });
+				await interaction.channel.send({ ephemeral: true, embeds: [embedsearchfailed] });
 			}
 	},
 };
