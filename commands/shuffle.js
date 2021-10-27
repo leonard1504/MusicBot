@@ -28,7 +28,7 @@ module.exports = {
             console.log(e);
             const embedshufflefail = new MessageEmbed()
                 .setColor(`${color}`)
-                .setTitle(`Ich konnte keine Lieder durch mischen, da keine Lieder in einer Warteschlange sind ${listemoji}`)
+                .setTitle(`${listemoji} Ich konnte keine Lieder durch mischen, da keine Lieder in einer Warteschlange sind`)
                 .setFooter(`Ausgeführt von:  ${nick}`, `${userpp}`);
             interaction.reply({ ephemeral: true, embeds: [embedshufflefail] });
         }

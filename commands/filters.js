@@ -49,6 +49,11 @@ module.exports = {
                             value: 'nightcore',
                         },
                         {
+                            label: 'Vaporwave',
+                            description: 'Fügt einen Vaporwave Effekt hinzu',
+                            value: 'vaporwave',
+                        },
+                        {
                             label: 'Flanger',
                             description: 'Fügt einen Flanger Effekt hinzu',
                             value: 'flanger',

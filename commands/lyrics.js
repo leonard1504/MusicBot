@@ -46,7 +46,10 @@ module.exports = {
                     song2 = song2.split('[');
                     song2.splice(1,1);
                     song2 = song2.join('');
-                    console.log("Song after removing brackets: " + song2);
+                    song2 = song2.split('"');
+                    song2.splice(1,1);
+                    song2 = song2.join('');
+                    console.log("Song after removing brackets and quotation mark: " + song2);
                     lyrics = await lyricsFinder("", song2) || "notfound";
                 }
                 if(lyrics == "notfound") {
