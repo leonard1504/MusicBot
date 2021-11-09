@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageEmbed } = require('discord.js');
-const { color, loadingemoji } = require("../config.json");
+const { color, loadingemoji, leaveemoji } = require("../config.json");
 let song, voice, nick, userpp;
 const Discord = require("discord.js");
 const DisTube = require('distube');
@@ -17,16 +17,26 @@ const client = new Discord.Client({
 		'GUILD_PRESENCES',
 	],
 });
+const spotifyplugin = new SpotifyPlugin({
+	parallel: true, 
+	emitEventsAfterFetching: true, 
+	api: {
+		clientId: "c669d4c118d348c9aba24145893c74f9", 
+		clientSecret: "f5c9af6998454887906acd95c8ce7a84",
+	},
+});
+
 const distube = new DisTube.default(client, {
-	searchSongs: 1,
+	searchSongs: 0,
 	searchCooldown: 5,
 	leaveOnEmpty: true,
-	emptyCooldown: 0,
+	emitNewSongOnly: true,
 	leaveOnFinish: true,
 	leaveOnStop: true,
-	youtubeCookie: "",
+	updateYouTubeDL: false,
+	youtubeCookie: "CONSENT=YES+DE.de+V14+BX; GPS=1; YSC=xS9CyljtGNE; VISITOR_INFO1_LIVE=YjHek9m3hok; CONSISTENCY=AGDxDeNJfmDTHPuyPFHsmcb3dP2E67KbDwDT8TD6A6Cd0u2krAnqX9-XJ2S-2f60RW6jpA05zowDnIDEA0ltBL77jlFWEpIzjyn9CWvnv7289vN5M6d435P_gNTuf5IpHkoU_5D87ozIOn3cOBtUNg; PREF=f4=4000000&tz=Europe.Berlin&f6=40000000",
 	nsfw: true,
-	plugins: [new SpotifyPlugin({api: {clientId: "c669d4c118d348c9aba24145893c74f9", clientSecret: "f5c9af6998454887906acd95c8ce7a84"}})],
+	plugins: [spotifyplugin],
 })
 
 module.exports = {
@@ -43,43 +53,41 @@ module.exports = {
 			}
 			userpp = interaction.user.avatarURL();
 			song = interaction.options.get('songname').value;
-			try {
-				const embedwaiting = new MessageEmbed()
-					.setColor(`${color}`)
-					.setTitle(`${loadingemoji} Suche nach deinem Lied, dies kann einen Moment dauern... :smile:`)
-					.setDescription(`Manche Lieder können manchmal bedingt durch YouTube Richtlinen nicht auf Anhieb wiedergegeben werden, probier dies dann einfach nochmal :smile:`)
-					.setFooter(`Ausgeführt von:  ${nick}`, `${userpp}`);
-				interaction.reply({ embeds: [embedwaiting] });
-				let validsong = await distube.search(song);
-				voice = await interaction.member.voice.channel;
-				if ( voice != null && validsong.length != 0) {
-					distube.playVoiceChannel(voice, song, { member: interaction.member, textChannel: interaction.channel });
-					
-					distube.once("addSong", ( queue, song ) => {
-						interaction.deleteReply();	
-					});
+			const embedwaiting = new MessageEmbed()
+				.setColor(`${color}`)
+				.setTitle(`${loadingemoji} Suche nach deinem Lied, dies kann einen Moment dauern...`)
+				.setDescription(`Manche Lieder können manchmal bedingt durch YouTube Richtlinen nicht auf Anhieb wiedergegeben werden, probier dies dann einfach nochmal.`)
+				.setFooter(`Ausgeführt von:  ${nick}`, `${userpp}`);
+			interaction.reply({ embeds: [embedwaiting] });
+			voice = await interaction.member.voice.channel;
+			if ( voice != null) {
+				distube.playVoiceChannel(voice, song, { member: interaction.member, textChannel: interaction.channel });
+				
+				distube.once("addSong", ( queue, song ) => {
+					interaction.deleteReply();	
+				});
 
-					distube.on("addList", ( queue, song ) => {
-						interaction.deleteReply();
-					});
-
-				} else {
+				distube.on("addList", ( queue, song ) => {
 					interaction.deleteReply();
-					const embedfailedtoconnect = new MessageEmbed()
+				});
+
+				distube.on('error', async (channel, error) => {
+					interaction.deleteReply();
+					const embedsearchfailed = new MessageEmbed()
 						.setColor(`${color}`)
-						.setTitle(`Du befindest dich in keinem Channel 😢`)
-						.setFooter(`Ausgeführt von:  ${nick}`, `${userpp}`);
-					await interaction.channel.send({ ephemeral: true, embeds: [embedfailedtoconnect] });
-				}
-			} catch(e) {
-				console.log(e);
+						.setTitle("Lied nicht gefunden")
+						.setDescription(`${leaveemoji} Ich konnte leider kein Lied mit dem Titel / über den Link **${song}** finden.`)
+						.setFooter(`Ausgeführt von: ${nick}`, `${userpp}`);
+					await interaction.channel.send({ ephemeral: true, embeds: [embedsearchfailed] });
+				});
+				
+			} else {
 				interaction.deleteReply();
-				const embedsearchfailed = new MessageEmbed()
+				const embedfailedtoconnect = new MessageEmbed()
 					.setColor(`${color}`)
-					.setTitle("Lied nicht gefunden")
-					.setDescription(`Ich konnte leider kein Lied mit dem Titel / über den Link **${song}** finden :cry:`)
-					.setFooter(`Ausgeführt von: ${nick}`, `${userpp}`);
-				await interaction.channel.send({ ephemeral: true, embeds: [embedsearchfailed] });
+					.setTitle(`${leaveemoji} Du befindest dich in keinem Channel`)
+					.setFooter(`Ausgeführt von:  ${nick}`, `${userpp}`);
+				await interaction.channel.send({ ephemeral: true, embeds: [embedfailedtoconnect] });
 			}
 	},
 };

@@ -8,6 +8,7 @@ client.commands = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 const invites = new Map();
 const wait = require("timers/promises").setTimeout;
+let queuedata;
 
 for (const file of commandFiles) {
 	const command = require(`./commands/${file}`);
@@ -89,7 +90,7 @@ client.on('interactionCreate', async interaction => {
 		await command.execute(interaction);
 	} catch (error) {
 		console.log(error);
-		return interaction.editReply({ content: 'Oh Tut mir leid, da ist wohl was schiefgelaufen :/ ' + error, ephemeral: true });
+		//return interaction.editReply({ content: 'Oh Tut mir leid, da ist wohl was schiefgelaufen :/ ' + error, ephemeral: true });
 	}
 });
 
@@ -197,11 +198,13 @@ client.on('interactionCreate', interaction => {
 			}
 		}
 	} else {
-		const embednoqueue = new MessageEmbed()
-			.setColor(`${color}`)
-			.setTitle(`${leaveemoji} Du kannst dies nicht tun, da kein Lied läuft`)
-			.setFooter(`Ausgeführt von: ${nick2}`, `${userpp2}`);
-		interaction.reply({ ephemeral: true, embeds: [embednoqueue] });
+		if("nextbtn" !== interaction.customId && "previousbtn" !== interaction.customId) {
+			const embednoqueue = new MessageEmbed()
+				.setColor(`${color}`)
+				.setTitle(`${leaveemoji} Du kannst dies nicht tun, da kein Lied läuft`)
+				.setFooter(`Ausgeführt von: ${nick2}`, `${userpp2}`);
+			interaction.reply({ ephemeral: true, embeds: [embednoqueue] });
+		}
 	}
 });
 
@@ -361,10 +364,6 @@ distube.on("empty", (queue, song) => {
 
 distube.on("disconnect", (queue, song) => {
 	client.user.setPresence({status: "dnd", activities: [{name: "momentan nichts..."}]});
-});
-
-distube.on("error", (textChannel, error) => {
-	console.log(error);
 });
 
 process.on('unhandledRejection', error => {
