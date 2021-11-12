@@ -428,6 +428,7 @@ module.exports = {
                 inline: false,
             },
             )
+            .setURL(`https://xdx.gg/${queryregion}/${encodeURI(interaction.options.get("spielername").value)}`)
             .setThumbnail(`https://ddragon.leagueoflegends.com/cdn/${getVersion[0]}/img/profileicon/${summoner.response.profileIconId}.png`)
             .setFooter(`Ausgeführt von:  ${nick}`, `${userpp}`);
         const embeduserprofile2 = new MessageEmbed()
@@ -517,6 +518,7 @@ module.exports = {
                 inline: true,
             },
             )
+            .setURL(`https://xdx.gg/${queryregion}/${encodeURI(interaction.options.get("spielername").value)}`)
             .setThumbnail(`https://ddragon.leagueoflegends.com/cdn/${getVersion[0]}/img/profileicon/${summoner.response.profileIconId}.png`)
             .setFooter(`Ausgeführt von:  ${nick}`, `${userpp}`);
 
