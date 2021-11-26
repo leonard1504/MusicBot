@@ -1,14 +1,21 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageEmbed } = require('discord.js');
-const { color } = require('../config.json');
+const {
+    SlashCommandBuilder
+} = require('@discordjs/builders');
+const {
+    MessageEmbed
+} = require('discord.js');
+const {
+    color
+} = require('../config.json');
+
 function getRandomInt(max) {
     return Math.floor(Math.random() * max);
 }
 module.exports = {
-	data: new SlashCommandBuilder()
-		.setName('pokefusion')
-		.setDescription('Kombiniert zwei zufällige Pokémons miteinander'),
-	async execute(interaction) {
+    data: new SlashCommandBuilder()
+        .setName('pokefusion')
+        .setDescription('Kombiniert zwei zufällige Pokémons miteinander'),
+    async execute(interaction) {
         if (interaction.member.nickname != null) {
             nick = interaction.member.nickname;
         } else {
@@ -21,6 +28,8 @@ module.exports = {
             .setColor(`${color}`)
             .setImage(`https://images.alexonsager.net/pokemon/fused/${a}/${a}.${b}.png`)
             .setFooter(`Ausgeführt von:  ${nick}`, `${userpp}`);
-		await interaction.reply({ embeds: [embedpoke] });
+        await interaction.reply({
+            embeds: [embedpoke]
+        });
     },
 };
