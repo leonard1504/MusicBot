@@ -25,6 +25,36 @@ const {
 	distube,
 	client
 } = require('./commands/play');
+let userdatabase = [];
+
+function moveUser() {
+    for(let i = 0; userdatabase.length > i; i++) {
+        const Guild = client.guilds.cache.get("292007278205206530");
+        const Member = Guild.members.cache.get(userdatabase[i].user_id);
+        if(Member.voice.channel && userdatabase[i].on) {
+            if(Member.voice.channelId != userdatabase[i].channel_id) {
+                Member.voice.setChannel(userdatabase[i].channel_id);
+                console.log("User was moved");
+            }
+        } else {
+            movemeback = {
+                user_id: userdatabase[i].user_id,
+                channel_id: userdatabase[i].channel_id,
+                channel_name: userdatabase[i].channel_name,
+                on: false
+            }
+            userdatabase.push(movemeback);
+            const data = JSON.stringify(userdatabase);
+            fs.writeFile(`movemeback.json`, data, (err) => {
+                if (err) {
+                    throw err;
+                }
+                console.log("User disconnected toggle auto-move off");
+            });
+        }
+    }
+}
+
 client.commands = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 const invites = new Map();
@@ -47,12 +77,32 @@ client.on('ready', async () => {
 		}]
 	});
 	distube.setMaxListeners(10);
+});
+
+client.on('ready', async () => {
 	setInterval(() => {
 		client.guilds.cache.forEach(async (guild) => {
 			const firstInvites = await guild.invites.fetch();
 			invites.set(guild.id, new Map(firstInvites.map((invite) => [invite.code, invite.uses])));
 		});
 	}, 2500);
+
+	setInterval(() => {
+		//Read database
+		fs.access('movemeback.json', (err) => {
+			if(!err) {
+				let file = fs.statSync('movemeback.json');
+				if(file.size > 0) {
+					fs.readFile('movemeback.json', 'utf-8', (err, data1) => {
+						if(!err) {
+							userdatabase = JSON.parse(data1.toString());
+							moveUser();
+						}
+					});
+				}
+			}
+		});
+	}, 1000);
 });
 
 client.on('guildMemberAdd', async member => {
