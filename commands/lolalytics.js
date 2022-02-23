@@ -33,14 +33,6 @@ module.exports = {
             nick = interaction.user.username;
         }
         userpp = interaction.user.avatarURL();
-        const embedwaiting = new MessageEmbed()
-            .setColor(`${color}`)
-            .setTitle(`${loadingemoji} Screenshot wird erstellt...`)
-            .setDescription(`Dies kann einen Moment dauern.`)
-            .setFooter(`Ausgeführt von:  ${nick}`, `${userpp}`);
-        interaction.reply({
-            embeds: [embedwaiting]
-        });
         let urlpartstring;
         let champ = interaction.options.get('champ').value;
         let build = interaction.options.get('build').value;
@@ -73,6 +65,14 @@ module.exports = {
         const browser = await puppeteer.launch({
             args: ["--no-sandbox"],
             ignoreDefaultArgs: ['--disable-extensions']
+        });
+        const embedwaiting = new MessageEmbed()
+            .setColor(`${color}`)
+            .setTitle(`${loadingemoji} Screenshot wird erstellt...`)
+            .setDescription(`Dies kann einen Moment dauern.`)
+            .setFooter(`Ausgeführt von:  ${nick}`, `${userpp}`);
+        interaction.reply({
+            embeds: [embedwaiting]
         });
         const page = await browser.newPage();
         await page.goto(url);
@@ -184,9 +184,10 @@ module.exports = {
                     });
                 } else {
                     let time = Date.now();
-                    await element.screenshot({
+                    /*await element.screenshot({
                         path: `./screenshots/champscreenshot_${time}.png`
-                    });
+                    });*/
+                    const attachment = new MessageAttachment(await element.screenshot(), `champscreenshot_${time}.png`);
 
                     let champions = await fetch(`http://ddragon.leagueoflegends.com/cdn/${getVersion[0]}/data/de_DE/champion.json`).then((resp) => resp.json());
                     let champPic;
@@ -202,11 +203,11 @@ module.exports = {
                         }
                     }
 
-                    const canvas = Canvas.createCanvas(1036, 280);
+                    /*const canvas = Canvas.createCanvas(1036, 280);
                     const context = canvas.getContext('2d');
                     const image = await Canvas.loadImage(`./screenshots/champscreenshot_${time}.png`);
                     context.drawImage(image, 0, 0);
-                    const attachment = new MessageAttachment(canvas.toBuffer(), `champscreenshot_${time}.png`);
+                    const attachment = new MessageAttachment(canvas.toBuffer(), `champscreenshot_${time}.png`);*/
 
                     const embedchamp = new MessageEmbed()
                         .setColor(`${color}`)
@@ -256,13 +257,13 @@ module.exports = {
                         files: [attachment]
                     });
                     await browser.close();
-                    try {
+                    /*try {
                         sleep(10000);
                         await fs.unlinkSync(`./screenshots/champscreenshot_${time}.png`);
                         console.log("Screenshot wurde erfolgreich wieder gelöscht!");
                     } catch (e) {
                         console.log("Es gab ein Fehler beim löschen, des Screenshots" + e.message);
-                    }
+                    }*/
                 }
             }
         } catch (e) {

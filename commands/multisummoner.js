@@ -68,8 +68,8 @@ module.exports = {
             }
         }, div_selector_to_remove)
 
-        await page.waitForSelector('.multi2__list');
-        const element = await page.$('.multi2__list');
+        await page.waitForSelector('.multi-list');
+        const element = await page.$('.multi-list');
         const attachment = new MessageAttachment(await element.screenshot(), 'multiscreenshot.png');
         await browser.close();
 
