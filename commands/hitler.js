@@ -13,8 +13,8 @@ const canvacord = require("canvacord");
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('hitler')
-        .addMentionableOption(option => option.setName('mention').setRequired(true).setDescription("Erwähne hier eine Person"))
-        .setDescription('Nein das wird meinem Kind nicht schaden'),
+        .addUserOption(option => option.setName('user').setRequired(true).setDescription("Erwähne hier eine Person"))
+        .setDescription('Diese Person ist einfach schlimmer als Hitler'),
     async execute(interaction) {
         if (interaction.member.nickname != null) {
             nick = interaction.member.nickname;
@@ -22,7 +22,7 @@ module.exports = {
             nick = interaction.user.username;
         }
         userpp = interaction.user.avatarURL();
-        mentionedUser = interaction.options.get('mention').user.avatarURL({ dynamic: false, format: 'png' });
+        mentionedUser = interaction.options.get('user').user.avatarURL({ dynamic: false, format: 'png' });
         image = await canvacord.Canvacord.hitler(mentionedUser.toString());
         let attachment = await new MessageAttachment(image, "hitler.png");
         const embedhitler = new MessageEmbed()

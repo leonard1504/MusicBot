@@ -13,7 +13,7 @@ const canvacord = require("canvacord");
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('beautiful')
-        .addMentionableOption(option => option.setName('mention').setRequired(true).setDescription("Erwähne hier eine Person"))
+        .addUserOption(option => option.setName('user').setRequired(true).setDescription("Erwähne hier eine Person"))
         .setDescription('Ist einfach hübsch kann man nichts gegen sagen'),
     async execute(interaction) {
         if (interaction.member.nickname != null) {
@@ -22,7 +22,7 @@ module.exports = {
             nick = interaction.user.username;
         }
         userpp = interaction.user.avatarURL();
-        mentionedUser = interaction.options.get('mention').user.avatarURL({ dynamic: false, format: 'png' });
+        mentionedUser = interaction.options.get('user').user.avatarURL({ dynamic: false, format: 'png' });
         image = await canvacord.Canvacord.beautiful(mentionedUser.toString());
         let attachment = await new MessageAttachment(image, "beautiful.png");
         const embedbeautiful = new MessageEmbed()

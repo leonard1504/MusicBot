@@ -56,8 +56,8 @@ module.exports = {
         });
         const page = await browser.newPage();
         await page.goto(url);
-        await page.waitForSelector("button[mode='primary']");
-        await page.click("button[mode='primary']");
+        await page.waitForSelector("button[mode='secondary']");
+        await page.click("button[mode='secondary']");
 
         await page.waitForSelector("div#beacon-container");
         let div_selector_to_remove = "div#beacon-container";

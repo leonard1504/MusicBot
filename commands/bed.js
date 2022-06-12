@@ -13,8 +13,8 @@ const canvacord = require("canvacord");
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('bed')
-        .addMentionableOption(option => option.setName('mention').setRequired(true).setDescription("Erwähne hier eine Person"))
-        .addMentionableOption(option => option.setName('mention2').setRequired(true).setDescription("Erwähne hier eine Person"))
+        .addUserOption(option => option.setName('user').setRequired(true).setDescription("Erwähne hier eine Person"))
+        .addUserOption(option => option.setName('user2').setRequired(true).setDescription("Erwähne hier eine Person"))
         .setDescription('Da ist ein Monster unter meinem Bett'),
     async execute(interaction) {
         if (interaction.member.nickname != null) {
@@ -23,8 +23,8 @@ module.exports = {
             nick = interaction.user.username;
         }
         userpp = interaction.user.avatarURL();
-        mentionedUser = interaction.options.get('mention').user.avatarURL({ dynamic: false, format: 'png' });
-        mentionedUser2 = interaction.options.get('mention2').user.avatarURL({ dynamic: false, format: 'png' });
+        mentionedUser = interaction.options.get('user').user.avatarURL({ dynamic: false, format: 'png' });
+        mentionedUser2 = interaction.options.get('user2').user.avatarURL({ dynamic: false, format: 'png' });
         image = await canvacord.Canvacord.bed(mentionedUser.toString(), mentionedUser2.toString());
         let attachment = await new MessageAttachment(image, "bed.png");
         const embedbed = new MessageEmbed()

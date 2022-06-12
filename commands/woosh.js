@@ -13,7 +13,7 @@ const canvacord = require("canvacord");
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('woosh')
-        .addMentionableOption(option => option.setName('mention').setRequired(true).setDescription("Erwähne hier eine Person"))
+        .addUserOption(option => option.setName('user').setRequired(true).setDescription("Erwähne hier eine Person"))
         .setDescription('Der Witz ↗️ Du'),
     async execute(interaction) {
         if (interaction.member.nickname != null) {
@@ -22,7 +22,7 @@ module.exports = {
             nick = interaction.user.username;
         }
         userpp = interaction.user.avatarURL();
-        mentionedUser = interaction.options.get('mention').user.avatarURL({ dynamic: false, format: 'png' });
+        mentionedUser = interaction.options.get('user').user.avatarURL({ dynamic: false, format: 'png' });
         image = await canvacord.Canvacord.jokeOverHead(mentionedUser.toString());
         let attachment = await new MessageAttachment(image, "woosh.png");
         const embedwoosh = new MessageEmbed()

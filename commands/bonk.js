@@ -14,7 +14,7 @@ const Canvas = require('canvas');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('bonk')
-        .addMentionableOption(option => option.setName('mention').setRequired(true).setDescription("Erwähne hier eine Person"))
+        .addUserOption(option => option.setName('user').setRequired(true).setDescription("Erwähne hier eine Person"))
         .setDescription('Hopp hopp in den horny jail'),
     async execute(interaction) {
         if (interaction.member.nickname != null) {
@@ -23,7 +23,7 @@ module.exports = {
             nick = interaction.user.username;
         }
         userpp = interaction.user.avatarURL();
-        mentionedUser = interaction.options.get('mention').user.avatarURL({ dynamic: false, format: 'png' });
+        mentionedUser = interaction.options.get('user').user.avatarURL({ dynamic: false, format: 'png' });
         const canvas = Canvas.createCanvas(1200, 672);
         const context = canvas.getContext('2d');
         const hornyjail = await Canvas.loadImage('./hornyjail.png');

@@ -166,7 +166,7 @@ module.exports = {
                             flexranksymbol = `${challenger}`;
                         break
                     };
-                    wlratioflex = Math.round((rank.response[1].wins/(rank.response[1].wins+rank.response[1].losses))*100);
+                    wlratioflex = Math.round((rank.response[x].wins/(rank.response[x].wins+rank.response[x].losses))*100);
                     flexstring = `**${flexranksymbol} ${rank.response[x].tier} ${rank.response[x].rank}** \n LP: ${rank.response[x].leaguePoints} \n Gewonnen: ${rank.response[x].wins} \n Verloren: ${rank.response[x].losses} \n Winrate: ${wlratioflex}%`;
                 break;
                 default: 

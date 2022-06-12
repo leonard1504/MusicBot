@@ -13,7 +13,7 @@ const canvacord = require("canvacord");
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('trigger')
-        .addMentionableOption(option => option.setName('mention').setRequired(true).setDescription("Erwähne hier eine Person"))
+        .addUserOption(option => option.setName('user').setRequired(true).setDescription("Erwähne hier eine Person"))
         .setDescription('Oh da scheint wer getriggered zu sein'),
     async execute(interaction) {
         if (interaction.member.nickname != null) {
@@ -22,7 +22,7 @@ module.exports = {
             nick = interaction.user.username;
         }
         userpp = interaction.user.avatarURL();
-        mentionedUser = interaction.options.get('mention').user.avatarURL({ dynamic: false, format: 'png' });
+        mentionedUser = interaction.options.get('user').user.avatarURL({ dynamic: false, format: 'png' });
         image = await canvacord.Canvacord.trigger(mentionedUser.toString());
         let attachment = await new MessageAttachment(image, "trigger.gif");
         const embedtrigger = new MessageEmbed()

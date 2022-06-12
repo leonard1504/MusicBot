@@ -44,7 +44,7 @@ module.exports = {
             try{
                 console.log(`urban dictionary searching for: ${interaction.options.get('search').value}`);
                 url = `https://www.urbandictionary.com/define.php?term=${interaction.options.get('search').value}`;
-                embedurl = url.replace(' ', '%20');
+                embedurl = url.replaceAll(' ', '%20');
             } catch(e) {
                 const embedurbansearchfailed = new MessageEmbed()
                     .setColor(`${color}`)

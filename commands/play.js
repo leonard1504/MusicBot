@@ -74,7 +74,7 @@ module.exports = {
 		});
 		voice = await interaction.member.voice.channel;
 		if (voice != null) {
-			distube.playVoiceChannel(voice, song, {
+			distube.play(voice, song, {
 				member: interaction.member,
 				textChannel: interaction.channel
 			});
@@ -89,6 +89,7 @@ module.exports = {
 
 			distube.on('error', async (channel, error) => {
 				interaction.deleteReply();
+				console.log(error);
 				const embedsearchfailed = new MessageEmbed()
 					.setColor(`${color}`)
 					.setTitle("Lied nicht gefunden")

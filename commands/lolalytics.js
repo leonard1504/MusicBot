@@ -76,22 +76,15 @@ module.exports = {
         });
         const page = await browser.newPage();
         await page.goto(url);
-        await page.setDefaultTimeout(10000);
+        await page.setViewport({
+            width: 1920,
+            height: 1080
+        });
+        await page.setDefaultTimeout(100000);
         await page.waitForSelector("button.ncmp__btn");
-        const selectors = await page.$$('button.ncmp__btn')
-        await selectors[1].click();
-
         try {
-
-            await page.waitForSelector("div.Menu_wrapper__1nX2N");
-            let div_selector_to_remove = "div.Menu_wrapper__1nX2N";
-            await page.evaluate((sel) => {
-                var elements = document.querySelectorAll(sel);
-                for (var i = 0; i < elements.length; i++) {
-                    elements[i].parentNode.removeChild(elements[i]);
-                }
-            }, div_selector_to_remove)
-
+            const selectors = await page.$$('button.ncmp__btn')
+            await selectors[1].click();
             try {
                 let element0 = await page.$('h3');
                 let textinfo0 = await page.evaluate(el => el.textContent, element0);
@@ -104,11 +97,28 @@ module.exports = {
                     interaction.editReply({
                         embeds: [embedfailed]
                     });
+                } else if (textinfo0.toString().includes("Invalid Champion Name!")) {
+                    const embedfailed = new MessageEmbed()
+                        .setColor(`${color}`)
+                        .setTitle(`${leaveemoji} Champion konnte nicht gefunden werden.`)
+                        .setDescription(`Tut mir leid Ich konnte keinen Champion mit dem Namen **${champ}** finden`)
+                        .setFooter(`Ausgeführt von:  ${nick}`, `${userpp}`);
+                    interaction.editReply({
+                        embeds: [embedfailed]
+                    });
                 }
-            } catch {
-                await page.waitForSelector('div.ChampionHeader_stats__f84LW');
-                let element2 = await page.$('div.ChampionHeader_stats__f84LW');
+            } catch {}
+                let classNames = [];
+                for(const div of await page.$$('div')) {
+                    let div_class = await div._remoteObject.description;
+                    if(div_class !== "" && div_class !== "div" && (div_class.includes("ChampionStats_stats__") || div_class.includes("ButtonSet_wrapper__") || div_class.includes("Summary_full__") || div_class.includes("ChampionDescription_description__"))) {
+                        classNames.push(div_class);
+                    }
+                };
+                await page.waitForSelector(`${classNames[1]}`);
+                let element2 = await page.$(`${classNames[1]}`);
                 let textinfo = await page.evaluate(el => el.textContent, element2);
+                console.log(textinfo);
 
                 let winrateS = textinfo.split("Win Rate");
                 let rankS = winrateS[1].toString().split("Rank");
@@ -117,8 +127,8 @@ module.exports = {
                 let banrateS = pickrateS[1].toString().split("Ban Rate");
                 let gamesS = banrateS[1].toString().split("Games");
 
-                await page.waitForSelector('div.ButtonSet_wrapper__hjqnI');
-                const selectors2 = await page.$$('div.ButtonSet_wrapper__hjqnI');
+                await page.waitForSelector(`${classNames[2]}`);
+                const selectors2 = await page.$$(`${classNames[2]}`);
                 if (build === "hw") {
                     buildtype = "Highest Winrate"
                     await selectors2[1].click();
@@ -129,12 +139,12 @@ module.exports = {
 
                 let getVersion = await fetch(`https://ddragon.leagueoflegends.com/api/versions.json`).then((resp) => resp.json());
 
-                await page.waitForSelector('.Summary_quick__3le_e');
-                const element = await page.$('.Summary_quick__3le_e');
+                await page.waitForSelector(`${classNames[3]}`);
+                const element = await page.$(`${classNames[3]}`);
                 const champbuildinfo = await page.evaluate(el => el.textContent, element);
                 let champLower = champ.toLowerCase();
                 let championName = champLower.charAt(0).toUpperCase() + champLower.slice(1);
-                let element3 = await page.$('div.ChampionHeader_champion__2ZqIZ.ChampionHeader_header__TkIzw');
+                let element3 = await page.$(`${classNames[0]}`);
                 laneinfo = await page.evaluate(el => el.textContent, element3);
                 if (lane != "-") {
                     laneName = lane.charAt(0).toUpperCase() + lane.slice(1);
@@ -184,9 +194,6 @@ module.exports = {
                     });
                 } else {
                     let time = Date.now();
-                    /*await element.screenshot({
-                        path: `./screenshots/champscreenshot_${time}.png`
-                    });*/
                     const attachment = new MessageAttachment(await element.screenshot(), `champscreenshot_${time}.png`);
 
                     let champions = await fetch(`http://ddragon.leagueoflegends.com/cdn/${getVersion[0]}/data/de_DE/champion.json`).then((resp) => resp.json());
@@ -202,13 +209,6 @@ module.exports = {
                             champPic = `http://ddragon.leagueoflegends.com/cdn/${getVersion[0]}/img/champion/MonkeyKing.png`;
                         }
                     }
-
-                    /*const canvas = Canvas.createCanvas(1036, 280);
-                    const context = canvas.getContext('2d');
-                    const image = await Canvas.loadImage(`./screenshots/champscreenshot_${time}.png`);
-                    context.drawImage(image, 0, 0);
-                    const attachment = new MessageAttachment(canvas.toBuffer(), `champscreenshot_${time}.png`);*/
-
                     const embedchamp = new MessageEmbed()
                         .setColor(`${color}`)
                         .setTitle(`Hier das vorgeschlagene Build von Lolalytics`)
@@ -257,25 +257,9 @@ module.exports = {
                         files: [attachment]
                     });
                     await browser.close();
-                    /*try {
-                        sleep(10000);
-                        await fs.unlinkSync(`./screenshots/champscreenshot_${time}.png`);
-                        console.log("Screenshot wurde erfolgreich wieder gelöscht!");
-                    } catch (e) {
-                        console.log("Es gab ein Fehler beim löschen, des Screenshots" + e.message);
-                    }*/
                 }
-            }
         } catch (e) {
             console.log(e);
-            const embedfailed = new MessageEmbed()
-                .setColor(`${color}`)
-                .setTitle(`${leaveemoji} Champion konnte nicht gefunden werden.`)
-                .setDescription(`Tut mir leid Ich konnte keinen Champion mit dem Namen **${champ}** finden`)
-                .setFooter(`Ausgeführt von:  ${nick}`, `${userpp}`);
-            interaction.editReply({
-                embeds: [embedfailed]
-            });
         }
     }
 }
