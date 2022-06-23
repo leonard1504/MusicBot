@@ -154,7 +154,6 @@ client.on('ready', async () => {
 		let audio, video, url, fileSize, videoDesc, file, videoDuplicate;
 		channel2.messages.fetch({ limit: 1 }).then(async messages => {
 			let lastMessage = messages.first();
-			//console.log(lastMessage);
 			let newestPost = {};
             let redditPics = [];
             const redditPicRegex = /(https?:\/\/preview.redd.it\/[^ ]*)/;
@@ -166,7 +165,6 @@ client.on('ready', async () => {
 						redditPics.push(post.selftext.match(redditPicRegex)[i].toString().replaceAll("&amp;", "&").replaceAll("\n", ""));
 					}
 				}
-                //console.log(redditPics);
 				try {
 					video = post.media.reddit_video.fallback_url.split("?")[0].split("DASH_")[0].toString() + 'DASH_480.mp4';
 				} catch {
@@ -178,13 +176,9 @@ client.on('ready', async () => {
 					audio = null;
 				}
 				if(video !== null) {
-					try {
-						if(video === lastMessage.content || `${post.id}.mp4` === lastMessage.attachments[0].name) {
-							videoDuplicate = true;
-						} else {
-							videoDuplicate = false;
-						}
-					} catch {
+					if(video === lastMessage.content || lastMessage.attachments.size !== 0 && `${post.id}.mp4` === lastMessage.attachments.toJSON()[0].name) {
+						videoDuplicate = true;
+					} else {
 						videoDuplicate = false;
 					}
 					if(audio !== null) {
@@ -192,17 +186,15 @@ client.on('ready', async () => {
 					} else {
 						url = `https://redditvideodownloader.com/dl.php?permalink=https://reddit.com${permalink}&video_url=${video}`;
 					}
-					filePath = `./reddit_vids/${post.id}.mp4`
+					filePath = `./reddit_vids/${post.id}.mp4`;
 					if(videoDuplicate === false) {
 						file = fs.createWriteStream(filePath);
-					}
-					try {
-						const request = http.get(url, (response) => {
+						http.get(url, (response) => {
 							response.pipe(file);
 						});
-					} catch {
-						filePath = null;
-					}
+					} else {
+            			filePath = null;
+          			}
 				} else {
 					filePath = null;
 				}
@@ -217,200 +209,139 @@ client.on('ready', async () => {
 					videoPath : filePath,
 					text: `${post.selftext ? `${post.selftext.replaceAll("&amp;nbsp;", "").replaceAll("&amp;#x200B;","").replaceAll("&lt;", "<").replaceAll("&gt;", "").replaceAll("&amp;", "&").replaceAll(replaceRedditPicURL, "")}` : ""}`
 				}
-				//console.log(newestPost);
 			});
-			console.log(videoDuplicate);
-			if(newestPost.video !== null && newestPost.filePath !== null && videoDuplicate === false) {
-				//console.log("Last Reddit post has video");
-				file.on('finish', function() {
-					fs.stat(filePath, (err, stats) => {
-						if(err) {
-							//console.log("Video nicht gefunden...");
-						} else {
-							fileSize = stats.size;
-						}
-						if(fileSize < 8000000) {
-							videoDesc = "Schau dir das Video unter dieser Nachricht an";
-						} else {
-							videoDesc = "Schau dir das Video **ohne Ton** unter dieser Nachricht an \n\n **INFO** Dieses Video ist lediglich ohne Ton verfügbar bedingt durch Discord's Limitierungen";
-							fs.unlink(newestPost.videoPath, (err) => {
-								if (err) { 
-									console.log(err);
-								} else {
-									//console.log(`Deleted video: ${newestPost.videoPath}`);
-								}
-							});
-						}
-						//console.log(lastMessage.attachments.first()?.name);
-						//console.log(newestPost.id + ".mp4");
-						if(lastMessage.attachments.first()?.name !== `${newestPost.id}.mp4` && lastMessage.embeds[0] !== undefined && lastMessage.embeds[0].url !== newestPost.url) {
-							if(newestPost.video !== null) {
-								embedleague = new MessageEmbed()
-								.setColor(`${color}`)
-								.setTitle(`${newestPost.title}`)
-								.setURL(`${newestPost.url}`)
-								.setDescription(videoDesc)
-								.setFooter(`Gepostet auf r/leagueoflegends von ${newestPost.author}`, `${client.guilds.cache.get("292007278205206530").iconURL()}`);
-								//console.log("hey");
-							} else if(newestPost.video !== null && newestPost.text !== "") {
-								embedleague = new MessageEmbed()
-								.setColor(`${color}`)
-								.setTitle(`${newestPost.title}`)
-								.setDescription(`${newestPost.text} \n\n ${videoDesc}`)
-								.setURL(`${newestPost.url}`)
-								.setFooter(`Gepostet auf r/leagueoflegends von ${newestPost.author}`, `${client.guilds.cache.get("292007278205206530").iconURL()}`);
-								//console.log("hey2");
-							}
-							if(fileSize < 8000000) {
-								channel2.send({
-									embeds: [embedleague]
-								});
-								channel2.send({
-									files: [newestPost.videoPath]
-								});
-								//console.log(embedleague);
-								fs.readdir('./reddit_vids', (err, files) => {
-									if (err) {
-										console.log(err);
-									}
-								
-									files.forEach(file => {
-										const fileDir = path.join('./reddit_vids', file);
-								
-										if (file !== `${newestPost.id}.mp4`) {
-											fs.unlink(fileDir, (err) => {
-												if (err) { 
-													console.log(err);
-												} else {
-													//console.log(`Deleted video: ${newestPost.videoPath}`);
-												}
-											});
-										}
-									});
-								});
-							} else {
-								channel2.send({
-									embeds: [embedleague]
-								});
-								channel2.send(newestPost.video);
-							}
-						}
-					});
-				});
-			}
-			if(newestPost.video === null && lastMessage.attachments !== null && lastMessage.attachments.first()?.contentType === 'video/mp4') {
-				//console.log("Last Reddit post is a text");
-				if(newestPost.text !== "") {
-					embedleague = new MessageEmbed()
-					.setColor(`${color}`)
-					.setTitle(`${newestPost.title}`)
-					.setDescription(`${newestPost.text}`)
-					.setURL(`${newestPost.url}`)
-					.setFooter(`Gepostet auf r/leagueoflegends von ${newestPost.author}`, `${client.guilds.cache.get("292007278205206530").iconURL()}`);
-					//console.log(embedleague);
-					//console.log("hey3");
-				} else if(newestPost.text !== "" && newestPost.thumbnail !== 'self') {
-					embedleague = new MessageEmbed()
-					.setColor(`${color}`)
-					.setTitle(`${newestPost.title}`)
-					.setDescription(`${newestPost.text}`)
-					.setImage(`${newestPost.thumbnail}`)
-					.setURL(`${newestPost.url}`)
-					.setFooter(`Gepostet auf r/leagueoflegends von ${newestPost.author}`, `${client.guilds.cache.get("292007278205206530").iconURL()}`);
-					//console.log("hey4");
-				} else if(newestPost.thumbnail !== 'self') {
-					embedleague = new MessageEmbed()
-					.setColor(`${color}`)
-					.setTitle(`${newestPost.title}`)
-					.setImage(`${newestPost.thumbnail}`)
-					.setURL(`${newestPost.url}`)
-					.setFooter(`Gepostet auf r/leagueoflegends von ${newestPost.author}`, `${client.guilds.cache.get("292007278205206530").iconURL()}`);
-					//console.log("hey5");
-				}
-				if (newestPost.video === null) {
-                    //console.log(redditPics);
-                    if(redditPics.length !== 0) {
-						embedleague.setImage(redditPics[0]);
+            if(filePath !== null && !videoDuplicate) {
+                //console.log("Last Reddit post has video");
+                file.on('finish', function() {
+                    fs.stat(filePath, (err, stats) => {
+                        if(err) {
+                            //console.log("Video nicht gefunden...");
+                        } else {
+                            fileSize = stats.size;
+                        }
+                        if(fileSize < 8000000) {
+                            videoDesc = "Schau dir das Video unter dieser Nachricht an";
+                            } else if (fileSize <= 0) {
+                                    fs.unlink(newestPost.videoPath, (err) => {
+                            if (err) { 
+                                console.log(err);
+                            } else {
+                                //console.log(`Deleted video: ${newestPost.videoPath}`);
+                            }
+                                    });
+                        } else {
+                            videoDesc = "Schau dir das Video **ohne Ton** unter dieser Nachricht an \n\n **INFO** Dieses Video ist lediglich ohne Ton verfügbar bedingt durch Discord's Limitierungen";
+                            fs.unlink(newestPost.videoPath, (err) => {
+                                if (err) { 
+                                    console.log(err);
+                                } else {
+                                    //console.log(`Deleted video: ${newestPost.videoPath}`);
+                                }
+                            });
+                        }
+                        if(videoDuplicate === false) {
+                            if(newestPost.video !== null) {
+                                embedleague = new MessageEmbed()
+                                .setColor(`${color}`)
+                                .setTitle(`${newestPost.title}`)
+                                .setURL(`${newestPost.url}`)
+                                .setDescription(videoDesc)
+                                .setFooter(`Gepostet auf r/leagueoflegends von ${newestPost.author}`, `${client.guilds.cache.get("292007278205206530").iconURL()}`);
+                            } else if(newestPost.video !== null && newestPost.text !== "") {
+                                embedleague = new MessageEmbed()
+                                .setColor(`${color}`)
+                                .setTitle(`${newestPost.title}`)
+                                .setDescription(`${newestPost.text} \n\n ${videoDesc}`)
+                                .setURL(`${newestPost.url}`)
+                                .setFooter(`Gepostet auf r/leagueoflegends von ${newestPost.author}`, `${client.guilds.cache.get("292007278205206530").iconURL()}`);
+                            }
+                            if(0 < fileSize && fileSize < 8000000) {
+                                channel2.send({
+                                    embeds: [embedleague]
+                                });
+                                channel2.send({
+                                    files: [newestPost.videoPath]
+                                });
+                                fs.readdir('./reddit_vids', (err, files) => {
+                                    if (err) {
+                                        console.log(err);
+                                    }
+
+                                    files.forEach(file => {
+                                        const fileDir = path.join('./reddit_vids', file);
+
+                                        if (file !== `${newestPost.id}.mp4`) {
+                                            fs.unlink(fileDir, (err) => {
+                                                if (err) { 
+                                                    console.log(err);
+                                                } else {
+                                                    //console.log(`Deleted video: ${newestPost.videoPath}`);
+                                                }
+                                            });
+                                        }
+                                    });
+                                });
+                            } else {
+                                channel2.send({
+                                    embeds: [embedleague]
+                                });
+                                channel2.send(newestPost.video);
+                            }
+                        }
+                    });
+                });
+            }
+            if(newestPost.video === null && lastMessage.embeds[0] !== undefined && lastMessage.embeds[0].url !== newestPost.url || lastMessage.attachments.size !== 0 && lastMessage.attachments.toJSON()[0].contentType === "video/mp4") {
+                //console.log("Last Reddit post is a text");
+                if(newestPost.text !== "") {
+                    embedleague = new MessageEmbed()
+                    .setColor(`${color}`)
+                    .setTitle(`${newestPost.title}`)
+                    .setDescription(`${newestPost.text}`)
+                    .setURL(`${newestPost.url}`)
+                    .setFooter(`Gepostet auf r/leagueoflegends von ${newestPost.author}`, `${client.guilds.cache.get("292007278205206530").iconURL()}`);
+                } else if(newestPost.text !== "" && newestPost.thumbnail !== 'self') {
+                    embedleague = new MessageEmbed()
+                    .setColor(`${color}`)
+                    .setTitle(`${newestPost.title}`)
+                    .setDescription(`${newestPost.text}`)
+                    .setImage(`${newestPost.thumbnail}`)
+                    .setURL(`${newestPost.url}`)
+                    .setFooter(`Gepostet auf r/leagueoflegends von ${newestPost.author}`, `${client.guilds.cache.get("292007278205206530").iconURL()}`);
+                } else if(newestPost.thumbnail !== 'self') {
+                    embedleague = new MessageEmbed()
+                    .setColor(`${color}`)
+                    .setTitle(`${newestPost.title}`)
+                    .setImage(`${newestPost.thumbnail}`)
+                    .setURL(`${newestPost.url}`)
+                    .setFooter(`Gepostet auf r/leagueoflegends von ${newestPost.author}`, `${client.guilds.cache.get("292007278205206530").iconURL()}`);
+                }
+                if (newestPost.video === null) {
+                    if(redditPics.length === 1) {
+                        embedleague.setImage(redditPics[0]);
                         channel2.send({
                             embeds: [embedleague]
                         });
-					} else if(redditPics.length > 1) {
+                    } else if(redditPics.length > 1) {
                         for(let i = 1; i < redditPics.length; i++) {
-                          if(redditPics[i] !== "") {
-                            embedleague = new MessageEmbed()
-                              .setColor(`${color}`)
-                              .setTitle(`${newestPost.title}`)
-                              .setImage(redditPics[i])
-                              .setURL(`${newestPost.url}`)
-                              .setFooter(`Gepostet auf r/leagueoflegends von ${newestPost.author}`, `${client.guilds.cache.get("292007278205206530").iconURL()}`);
-                            channel2.send({
-                              embeds: [embedleague]
-                            });
-                          }
-                         }
-                    } else {
-					channel2.send({
-						embeds: [embedleague]
-					});
-                    }
-				}
-			}
-			if(lastMessage.embeds.length > 0 && lastMessage.embeds[0].title !== newestPost.title && lastMessage.embeds[0].url !== newestPost.url) {
-				//console.log("Last Reddit post is a text");
-				if(newestPost.text !== "") {
-					embedleague = new MessageEmbed()
-					.setColor(`${color}`)
-					.setTitle(`${newestPost.title}`)
-					.setDescription(`${newestPost.text}`)
-					.setURL(`${newestPost.url}`)
-					.setFooter(`Gepostet auf r/leagueoflegends von ${newestPost.author}`, `${client.guilds.cache.get("292007278205206530").iconURL()}`);
-					//console.log(embedleague);
-					//console.log("hey3");
-				} else if(newestPost.text !== "" && newestPost.thumbnail !== 'self') {
-					embedleague = new MessageEmbed()
-					.setColor(`${color}`)
-					.setTitle(`${newestPost.title}`)
-					.setDescription(`${newestPost.text}`)
-					.setImage(`${newestPost.thumbnail}`)
-					.setURL(`${newestPost.url}`)
-					.setFooter(`Gepostet auf r/leagueoflegends von ${newestPost.author}`, `${client.guilds.cache.get("292007278205206530").iconURL()}`);
-					//console.log("hey4");
-				} else if(newestPost.thumbnail !== 'self') {
-					embedleague = new MessageEmbed()
-					.setColor(`${color}`)
-					.setTitle(`${newestPost.title}`)
-					.setImage(`${newestPost.thumbnail}`)
-					.setURL(`${newestPost.url}`)
-					.setFooter(`Gepostet auf r/leagueoflegends von ${newestPost.author}`, `${client.guilds.cache.get("292007278205206530").iconURL()}`);
-					//console.log("hey5");
-				}
-				if (newestPost.video === null) {
-                    //console.log(redditPics);
-					if(redditPics.length !== 0) {
-						embedleague.setImage(redditPics[0]);
-                        channel2.send({
-                            embeds: [embedleague]
-                        });
-					} else if(redditPics.length > 1) {
-                        for(let i = 1; i < redditPics.length; i++) {
-                          if(redditPics[i] !== "") {
-                            embedleague = new MessageEmbed()
-                              .setColor(`${color}`)
-                              .setTitle(`${newestPost.title}`)
-                              .setImage(redditPics[i])
-                              .setURL(`${newestPost.url}`)
-                              .setFooter(`Gepostet auf r/leagueoflegends von ${newestPost.author}`, `${client.guilds.cache.get("292007278205206530").iconURL()}`);
-                            channel2.send({
-                              embeds: [embedleague]
-                            });
-                          }
+                            if(redditPics[i] !== "") {
+                                embedleague = new MessageEmbed()
+                                .setColor(`${color}`)
+                                .setTitle(`${newestPost.title}`)
+                                .setImage(redditPics[i])
+                                .setURL(`${newestPost.url}`)
+                                .setFooter(`Gepostet auf r/leagueoflegends von ${newestPost.author}`, `${client.guilds.cache.get("292007278205206530").iconURL()}`);
+                                channel2.send({
+                                    embeds: [embedleague]
+                                });
+                            }
                         }
                     } else {
-					channel2.send({
-						embeds: [embedleague]
-					});
+                        channel2.send({
+                            embeds: [embedleague]
+                        });
                     }
-				}
+                }
 			}
 		}).catch(console.error);
 	}, 30000);
